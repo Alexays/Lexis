@@ -24,6 +24,8 @@ jobs:
         working-directory: player
     steps:
       - uses: actions/checkout@v4
+      # the image's default Xcode stops at the tvOS 27.0 SDK; the app targets 27.1
+      - run: sudo xcode-select -s /Applications/Xcode_27.2.app
       - uses: dtolnay/rust-toolchain@stable
         # the tvOS triples are for the app's xcframework, below
         with:
@@ -75,13 +77,11 @@ jobs:
         working-directory: tv
         run: |
           xcodegen generate --quiet
-          RUNTIME=$(xcrun simctl list runtimes -j | python3 -c '
+          # the newest Apple TV simulator the image ships, on the newest tvOS runtime
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c '
           import json, sys
-          runtimes = json.load(sys.stdin)["runtimes"]
-          tvos = [r["identifier"] for r in runtimes if r["identifier"].startswith(
-              "com.apple.CoreSimulator.SimRuntime.tvOS")]
-          print(tvos[-1])')
-          DEVICE=$(xcrun simctl create ci-lexis-tv \
-            com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K "$RUNTIME")
+          devices = json.load(sys.stdin)["devices"]
+          tvos = sorted(k for k in devices if ".tvOS-" in k)
+          print([d["udid"] for d in devices[tvos[-1]] if "Apple TV 4K" in d["name"]][-1])')
           xcodebuild test -project Lexis.xcodeproj -scheme Lexis \
             -destination "id=$DEVICE" CODE_SIGNING_ALLOWED=NO
