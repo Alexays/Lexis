@@ -33,7 +33,6 @@ things are added here:
 - `bank.py`: a bank file read back.
 - `dataset.sh`: the dataset, from 4K films on a Plex server, listed in a `films.txt` of your own (its
   format is at the top of the script; the list the banks were trained on is not published).
-- `enhanced_dataset.sh`: the same extracts through the player's Enhanced rendering.
 - `stability.py`: what a bank does over time to a starved film in motion: flashing, pattern instability.
 
 `prisme.py` matches the Metal kernel to a tenth of a ten bit code on average. Check it again after
@@ -56,14 +55,6 @@ PLEX_BASE=https://<server>:32400 PLEX_TOKEN=<token> ./dataset.sh films.txt ~/pri
 # Prisme.lxsr: every downscale, clean and encoded
 PRISME_DATA=~/prisme/data python3 train.py ../../Sources/LexisPlayer/Resources/Prisme.lxsr
 PRISME_DATA=~/prisme/data python3 evaluate.py ../../Sources/LexisPlayer/Resources/Prisme.lxsr reference
-
-# a bank for the Enhanced rendering (measured below, not shipped): the pictures it makes, against true 4K through that rendering
-cd ../.. && swift build --build-tests
-for split in train test; do
-  Tools/prisme/enhanced_dataset.sh ~/prisme/data ~/prisme/enhanced $split <test and train film names>
-done
-cd Tools/prisme
-PRISME_DATA=~/prisme/enhanced python3 train.py ../../Sources/LexisPlayer/Resources/PrismeEnhanced.lxsr
 ```
 
 The dataset is 14 films to train on and 3 held out to test, three moments of each, three frames a moment:
@@ -82,8 +73,6 @@ then a cored sharpen) first:
 | clean source, fine detail kept | 0.96 | 0.94 |
 | clean source, overshoot | 0.058 | 0.010 |
 
-In the Enhanced rendering, a bank trained there (`PrismeEnhanced.lxsr`, not shipped) scores a point of VMAF NEG over `Prisme.lxsr`, clean
-and encoded alike, with less overshoot.
 
 Tried and dropped, each measured: soft selection between neighbouring classes (no steadier, four times
 the cost), 288 classes and 6x6 filters (no better than 48 and 4x4), a class for the codec's block grid,
@@ -98,8 +87,8 @@ falls with it).
 `network/` trains the network the player doubles the luma with on the Neural Engine, in the filters' place, where
 it keeps up with the film (`Upscaler.Network`). Four 3x3 convolutions of 32 channels at a quarter of the source's
 pixels, the stream's deband strength as a fifth input channel, sixteen output pixels a position over the nearest
-neighbour, learned by L1 against true 4K. On the GPU after it, its finest detail is raised by a fifth where the
-Enhanced rendering has not given relief already, and by half the starvation.
+neighbour, learned by L1 against true 4K. On the GPU after it, its finest detail is raised by a fifth, and half
+again at the widest starvation.
 
 ```sh
 cd player/Tools/prisme/network
@@ -110,34 +99,23 @@ python3 train.py ~/prisme/net.pt
 python3 export.py ~/prisme/net.pt PrismeNet.mlpackage
 xcrun coremlcompiler compile PrismeNet.mlpackage ../../../Sources/LexisPlayer/Resources/
 python3 evaluate.py ~/prisme/net.pt
-# the Enhanced rendering: the extracts through it, then judged there
-./enhanced.sh test && ./enhanced.sh train && NET_DATA=~/prisme/enhanced python3 evaluate.py ~/prisme/net.pt
-./bench.sh && python3 adele.py ~/prisme/net.pt
 ```
 
 Needs PyTorch and coremltools (Python 3.12, PyTorch 2.7). Keep `~/prisme` out of `~/Library/Caches`, which macOS
 empties when the disk runs short.
 
-Against true 4K on the held out films, VMAF NEG, the filters first; then, on Adele's still shot through the
-Enhanced rendering, the 32x32 blocks that flash and the change of a pixel against its 3x3 that scintillates:
+Against true 4K on the held out films, VMAF NEG, the filters first:
 
 | | filters | network |
 |---|---|---|
-| decoded, clean source | 97.8 | 99.2 |
-| decoded, encoded source | 89.1 | 89.0 |
-| Enhanced, clean source | 96.7 | 97.3 |
-| Enhanced, encoded source | 90.0 | 90.3 |
-| Adele, flashing | 0.46% | 0.41% |
-| Adele, scintillation | 0.28 | 0.28 |
+| clean source | 97.8 | 99.2 |
+| encoded source | 89.1 | 89.0 |
 
 On an Apple TV 4K (A15) it takes 13 to 14 ms a frame on the Neural Engine, and the GPU's share of the scale falls
 from about 15 ms to 2.
 
 Tried and dropped, each measured: a loss on the amount of fine detail (it scintillates), a frequency loss (no
-better), a network trained on the Enhanced rendering's own pictures (its gain was the light the two renders landed
-at apart, and it flashed), a perceptual loss (LPIPS; texture that scintillates twice as much and flashes), one
-network told the rendering and trained on both with branched convolutions (worse
-everywhere), the frame before carried as features (0.1 to 0.2 VMAF), 48 channels (0.1 for twice the work).
+better), a perceptual loss (LPIPS; texture that scintillates twice as much and flashes), the frame before carried as features (0.1 to 0.2 VMAF), 48 channels (0.1 for twice the work).
 
 ### Restoration
 

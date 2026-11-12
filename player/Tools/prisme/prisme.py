@@ -5,7 +5,7 @@
 # The defaults are the shipped banks'; every one can be set from the environment to experiment.
 import numpy as np, os, glob, math, sys
 from concurrent.futures import ProcessPoolExecutor
-D = os.environ.get('PRISME_DATA', 'data')    # what dataset.sh or enhanced_dataset.sh wrote
+D = os.environ.get('PRISME_DATA', 'data')    # what dataset.sh wrote
 T = int(os.environ.get('T', '4'))            # taps each way
 ANG = int(os.environ.get('ANG', '8'))        # orientations
 STR = np.array([float(x) for x in os.environ.get('STR', '8,32,128').split(',')])   # strength bin centres, in ten bit codes a pixel

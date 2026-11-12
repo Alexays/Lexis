@@ -1,7 +1,6 @@
 # evaluate.py <net.pt>...: networks against Prisme on the held out films, by film, downscale and encode, as
 # Tools/prisme/evaluate.py scores: VMAF NEG by libvmaf, SSIM, fine detail and overshoot against the truth.
-# NET_DATA=~/prisme/enhanced judges on the Enhanced renders, the truth's light over 4x4 taken from the source there,
-# against PrismeEnhanced; PRISME=0 leaves Prisme out.
+# PRISME=0 leaves Prisme out.
 import sys, os, re, glob, subprocess, tempfile, numpy as np, torch
 from concurrent.futures import ProcessPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from net import *
@@ -9,8 +8,7 @@ sys.path.insert(0, TOOLS); import prisme, bank
 GAIN = float(os.environ.get('GAIN', '0.5'))   # the network's finest detail raised by this much at the widest strength, as the player does
 from numpy.lib.stride_tricks import sliding_window_view as sw
 MODEL = glob.glob('/opt/homebrew/Cellar/libvmaf/*/share/libvmaf/model/vmaf_4k_v0.6.1neg.json')[0]
-ENHANCED = 'enhanced' in D
-BANK = bank.read(RESOURCES + ('PrismeEnhanced' if ENHANCED else 'Prisme') + '.lxsr')
+BANK = bank.read(RESOURCES + 'Prisme.lxsr')
 SPECS = sys.argv[1:]
 
 def ssim(a, b):
@@ -18,11 +16,6 @@ def ssim(a, b):
     ma, mb = prisme.box(a, 7), prisme.box(b, 7); va = prisme.box(a * a, 7) - ma * ma; vb = prisme.box(b * b, 7) - mb * mb
     cov = prisme.box(a * b, 7) - ma * mb
     return np.mean(((2 * ma * mb + C1) * (2 * cov + C2)) / ((ma * ma + mb * mb + C1) * (va + vb + C2)))
-
-def levelled(R, L):   # the truth's light over 4x4 taken from the source's
-    t = torch.from_numpy(R)[None, None]; x = torch.from_numpy(L)[None, None]
-    low = lambda a: torch.nn.functional.interpolate(torch.nn.functional.avg_pool2d(a, 4), scale_factor=4, mode='bilinear', align_corners=False)
-    return (t - low(t) + low(torch.nn.functional.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)))[0, 0].numpy()
 
 def group(ps):
     torch.set_num_threads(2); nets = {os.path.basename(s): load(s) for s in SPECS}
@@ -34,7 +27,6 @@ def group(ps):
             with open(d + '/d.yuv', 'wb') as fd, open(d + '/r.yuv', 'wb') as fr:
                 for p in ps:
                     L, R = read(p); s = strength(p['d'], p['kernel'], p['tag'])
-                    if ENHANCED: R = levelled(R, L)
                     O = prisme.apply_shrunk(L, *BANK, s, 1.0, True, False) if name == 'prisme' else run(nets[name], L, s)
                     if name != 'prisme' and GAIN: O = O + GAIN * (s - 1) * (O - prisme.box(O, 3))
                     O = np.clip(np.rint(O), 4, 1019)
