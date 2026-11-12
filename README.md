@@ -34,7 +34,26 @@ the screen is what is in the file.
   AC-3 / E-AC-3 passthrough, and track choice weighed against what the HDMI
   route can actually carry (a Dolby track over ARC rather than a lossless one
   folded to stereo).
-- **Subtitles** rendered with libass, including styled ASS/SSA.
+
+### What it plays
+
+Any container and codec FFmpeg 7.1 reads. The hardware path is chosen per
+file, by asking VideoToolbox on the device itself, never from a table.
+
+| | Hardware (VideoToolbox) | Software (FFmpeg) |
+| --- | --- | --- |
+| Video | H.264, HEVC 8 and 10 bit, AV1 where the chip decodes it | AV1 through dav1d (the Apple TV 4K's A15 has no AV1 decoder), VP9, MPEG-2, VC-1 and the rest of FFmpeg's decoders, interlaced sources deinterlaced or inverse-telecined |
+| HDR | HDR10, HLG, Dolby Vision 5, 7 (base layer) and 8 | the same pictures tone mapped on the GPU where the screen cannot show them |
+
+| Audio | Sent as is to the receiver | Decoded to multichannel PCM |
+| --- | --- | --- |
+| Dolby Digital, Dolby Digital Plus (Atmos included) | yes, when the route takes it | otherwise |
+| Dolby TrueHD | offered; decoded if the route refuses it | otherwise |
+| DTS, DTS-HD | never: the Apple TV's renderer stalls on it | always, every channel kept |
+| AAC, FLAC, Opus, PCM and the rest | | always |
+
+Subtitles: text (SRT and friends), styled ASS/SSA through libass, and
+bitmap PGS from Blu-ray.
 
 ### Prisme, a learned upscaler running on the Apple TV
 
