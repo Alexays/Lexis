@@ -1,0 +1,10 @@
+# the device, simulator and per-screen build trees the scripts write
+.build*/
+Lexis.xcodeproj/
+LexisCore/LexisCoreFramework.xcframework/
+LexisCore/Sources/
+LexisCore/.swiftpm/
+# this machine's TMDB token, read by Lexis.xcconfig
+Secrets.xcconfig
+# logs trace-tv.sh fetches off the Apple TV
+.trace/

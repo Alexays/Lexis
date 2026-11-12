@@ -1,0 +1,4 @@
+module CLexisStream {
+    header "../../../core/include/lexis_stream.h"
+    export *
+}

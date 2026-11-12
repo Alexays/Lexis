@@ -1,0 +1,117 @@
+name: Lexis
+options:
+  bundleIdPrefix: io.github.alexays
+  deploymentTarget:
+    tvOS: "27.1"
+  createIntermediateGroups: true
+  xcodeVersion: "26.0"
+packages:
+  LexisPlayer:
+    path: ../player
+  LexisCore:
+    path: LexisCore
+configFiles:
+  Debug: Lexis.xcconfig
+  Release: Lexis.xcconfig
+targets:
+  Lexis:
+    type: application
+    platform: tvOS
+    sources:
+      - path: Sources
+        type: syncedFolder
+    dependencies:
+      - package: LexisPlayer
+        product: LexisPlayer
+      - package: LexisPlayer
+        product: LexisCoreStream
+      - package: LexisCore
+        product: LexisCore
+      - target: LexisTopShelf
+    configFiles:
+      Debug: Lexis.xcconfig
+      Release: Lexis.xcconfig
+    entitlements:
+      path: Lexis.entitlements
+      properties: {}
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Lexis
+        CFBundleDevelopmentRegion: en
+        UIUserInterfaceStyle: Dark
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLName: io.github.alexays.lexis
+            CFBundleURLSchemes: [lexis]
+        LexisTMDBToken: $(LEXIS_TMDB_TOKEN)
+        NSLocationWhenInUseUsageDescription: "Lexis reads the weather where you are to suggest a film that suits the evening. Your location never leaves this Apple TV except to ask for the forecast."
+        UIRequiredDeviceCapabilities: [arm64]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.alexays.lexis
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "3"
+        CODE_SIGN_STYLE: Automatic
+        # AVKit is linked by name: its UIWindow category (avDisplayManager)
+        # is reached through the runtime, and a framework nothing else
+        # references is not loaded by the autolink alone.
+        OTHER_LDFLAGS: ["-lc++", "-framework", "AVKit"]
+  LexisTopShelf:
+    type: app-extension
+    platform: tvOS
+    sources:
+      - path: TopShelf
+        type: syncedFolder
+        excludes: ["*.entitlements"]
+    entitlements:
+      path: TopShelf/LexisTopShelf.entitlements
+    info:
+      path: TopShelf/Info.plist
+      properties:
+        CFBundleDisplayName: Lexis Top Shelf
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.tv-top-shelf
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ContentProvider
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.alexays.lexis.topshelf
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+  # Drives the app with the remote and photographs what it draws. The unit
+  # tests measure a height; only this one can say whether the height is the
+  # one on the screen.
+  LexisShots:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources:
+      - path: Shots
+        type: syncedFolder
+    dependencies:
+      - target: Lexis
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+
+  LexisTests:
+    type: bundle.unit-test
+    platform: tvOS
+    sources:
+      - path: Tests
+        type: syncedFolder
+    dependencies:
+      - target: Lexis
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic

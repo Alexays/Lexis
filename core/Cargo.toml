@@ -1,0 +1,65 @@
+[package]
+name = "lexis-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "lexis_core"
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "replay"
+path = "src/bin/replay.rs"
+
+[dependencies]
+# the encoder's tensors and its forward pass. Default features off on both -
+# the defaults reach for CUDA and Metal, which this process has no use for -
+# and Accelerate back on: it is Apple's own BLAS, it ships on tvOS like every
+# other Apple platform, and the forward pass is matrix multiplication from end
+# to end.
+candle-core = { version = "0.9", default-features = false, features = ["accelerate"] }
+candle-nn = { version = "0.9", default-features = false, features = ["accelerate"] }
+# the oneshot an async export awaits its worker thread through: the foreign
+# side polls the future itself, so no async runtime is linked
+futures-channel = { version = "0.3", default-features = false, features = ["std"] }
+libc = "0.2"
+memmap2 = "0.9"
+parking_lot = "0.12"
+regex = "1"
+rusqlite = { version = "0.32", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.11"
+thiserror = "2"
+# the SentencePiece side of the encoder. Its defaults pull a C++ trainer and
+# the oniguruma C library, neither of which cross-compiles for tvOS and
+# neither of which an encode-only use needs; fancy-regex is the pure-Rust
+# alternative the crate already supports.
+tokenizers = { version = "0.21", default-features = false, features = ["fancy-regex"] }
+unicode-normalization = "0.1"
+uniffi = "0.29"
+ureq = { version = "2.12", features = ["json"] }
+
+# The encoder runs on the device and the whole of it is arithmetic: one
+# codegen unit and fat LTO let the optimiser see across the modules the
+# forward pass is split over and into std and the dependencies. The staticlib
+# still holds object code. Panics stay `unwind`: UniFFI catches them at the FFI.
+[profile.release]
+codegen-units = 1
+lto = "fat"
+
+[features]
+# only the bindings generator needs uniffi's CLI and its clap and bindgen tree
+cli = ["uniffi/cli"]
+
+[dev-dependencies]
+filetime = "0.2"
+futures-executor = { version = "0.3", default-features = false, features = ["std"] }
+tempfile = "3"
+tiny_http = "0.12"

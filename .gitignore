@@ -1,0 +1,23 @@
+/.worktrees/
+__pycache__/
+/.claude/
+
+# a local token file, never committed (the app's tokens live in tv/Secrets.xcconfig)
+.env.local
+.DS_Store
+
+# graft's local graph cache: regenerable, not committed (run `graft build`).
+/graft/
+
+# internal working material, kept local
+/.superpowers/
+/docs/superpowers/
+/docs/maquette/
+/gallery/
+/reports/
+/research_notes/
+/.mcp.json
+/.derived.noindex/
+
+# the film lists the Prisme banks were trained on: personal, kept local
+/player/Tools/prisme/**/films.txt

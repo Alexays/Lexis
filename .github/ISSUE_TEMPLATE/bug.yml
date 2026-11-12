@@ -1,0 +1,23 @@
+name: Bug
+description: Something plays, looks or behaves wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: file
+    attributes:
+      label: The file, for playback bugs
+      description: Output of `ffprobe -hide_banner <file>` (codecs, HDR or Dolby Vision profile, audio tracks).
+      render: text
+  - type: input
+    id: setup
+    attributes:
+      label: Setup
+      description: Apple TV model, tvOS version, TV or projector, receiver or soundbar, source (Plex or local), Lexis commit.
+    validations:
+      required: true

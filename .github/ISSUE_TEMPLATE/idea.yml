@@ -1,0 +1,10 @@
+name: Idea
+description: A feature or a change to discuss before any code
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like, and why
+    validations:
+      required: true

@@ -1,0 +1,14 @@
+/.build
+/.build-tvos
+/.build-ffmpeg
+/.build-libass
+/.build-dav1d
+/Vendor
+/Sources/CFFmpeg/include/libav*
+/Sources/CFFmpeg/include/libsw*
+/Sources/CLibass/include/ass
+/TestBench/build
+xcuserdata/
+/.bench-corpus
+/.build-macos
+/.build-tvos-device

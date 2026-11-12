@@ -1,0 +1,7 @@
+// The TMDB read access token baked into the app. Empty here: a machine that
+// has one puts it in the gitignored Secrets.xcconfig beside this file.
+LEXIS_TMDB_TOKEN =
+// The Apple team that signs the build, the same way.
+DEVELOPMENT_TEAM =
+
+#include? "Secrets.xcconfig"

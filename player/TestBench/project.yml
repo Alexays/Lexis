@@ -1,0 +1,33 @@
+name: TestBench
+options:
+  bundleIdPrefix: org.lexis
+  deploymentTarget:
+    tvOS: "27.0"
+  createIntermediateGroups: true
+packages:
+  LexisPlayer:
+    path: ..
+targets:
+  TestBench:
+    type: application
+    platform: tvOS
+    sources:
+      - path: Sources
+    info:
+      path: Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    dependencies:
+      - package: LexisPlayer
+        product: LexisPlayer
+      - package: LexisPlayer
+        product: LexisTestSupport
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.lexis.testbench
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        SWIFT_VERSION: "5.10"
+        TARGETED_DEVICE_FAMILY: "3"
+        CODE_SIGN_STYLE: Automatic
