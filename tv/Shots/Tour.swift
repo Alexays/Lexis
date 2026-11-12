@@ -7,7 +7,7 @@ import XCTest
 /// moves nothing or lands somewhere unexpected reads straight off the log.
 final class Tour: XCTestCase {
     func testTour() throws {
-        let dir = try XCTUnwrap(ProcessInfo.processInfo.environment["TOUR_DIR"], "pass TEST_RUNNER_TOUR_DIR")
+        guard let dir = ProcessInfo.processInfo.environment["TOUR_DIR"] else { throw XCTSkip("pass TEST_RUNNER_TOUR_DIR") }
         let script = try String(contentsOfFile: dir + "/script.txt", encoding: .utf8)
         let app = XCUIApplication()
         app.launch()

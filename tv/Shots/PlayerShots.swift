@@ -10,9 +10,9 @@ final class PlayerShots: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = true
-        let movie = try XCTUnwrap(
-            ProcessInfo.processInfo.environment["LEXIS_SHOTS_MOVIE"],
-            "tv/scripts/make-shots-movie.sh writes the film; pass its path as TEST_RUNNER_LEXIS_SHOTS_MOVIE")
+        guard let movie = ProcessInfo.processInfo.environment["LEXIS_SHOTS_MOVIE"] else {
+            throw XCTSkip("tv/scripts/make-shots-movie.sh writes the film; pass its path as TEST_RUNNER_LEXIS_SHOTS_MOVIE")
+        }
         app = XCUIApplication()
         app.launchArguments = ["-lexis-play-local", movie]
         app.launch()
