@@ -458,8 +458,10 @@ fn locate(header: &Header, name: &str) -> Result<(Range<usize>, Vec<usize>), Emb
 fn floats(bytes: &[u8], header: &Header, name: &str) -> Result<Vec<f32>, EmbedError> {
     let (range, _) = locate(header, name)?;
     Ok(bytes[range]
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect())
 }
 
@@ -471,8 +473,10 @@ fn tensor(
 ) -> Result<Tensor, EmbedError> {
     let (range, shape) = locate(header, name)?;
     let values: Vec<f32> = bytes[range]
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
     Tensor::from_vec(values, shape, device).map_err(candle)
 }

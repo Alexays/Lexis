@@ -18,7 +18,7 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo test --locked
   player:
-    runs-on: macos-latest
+    runs-on: xcode-27
     defaults:
       run:
         working-directory: player

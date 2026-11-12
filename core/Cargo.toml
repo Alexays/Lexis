@@ -18,13 +18,10 @@ name = "replay"
 path = "src/bin/replay.rs"
 
 [dependencies]
-# the encoder's tensors and its forward pass. Default features off on both -
-# the defaults reach for CUDA and Metal, which this process has no use for -
-# and Accelerate back on: it is Apple's own BLAS, it ships on tvOS like every
-# other Apple platform, and the forward pass is matrix multiplication from end
-# to end.
-candle-core = { version = "0.9", default-features = false, features = ["accelerate"] }
-candle-nn = { version = "0.9", default-features = false, features = ["accelerate"] }
+# the encoder's tensors and its forward pass. Default features off on both:
+# the defaults reach for CUDA and Metal, which this process has no use for.
+candle-core = { version = "0.9", default-features = false }
+candle-nn = { version = "0.9", default-features = false }
 # the oneshot an async export awaits its worker thread through: the foreign
 # side polls the future itself, so no async runtime is linked
 futures-channel = { version = "0.3", default-features = false, features = ["std"] }
@@ -50,6 +47,12 @@ ureq = { version = "2.12", features = ["json"] }
 # codegen unit and fat LTO let the optimiser see across the modules the
 # forward pass is split over and into std and the dependencies. The staticlib
 # still holds object code. Panics stay `unwind`: UniFFI catches them at the FFI.
+# Accelerate, Apple's own BLAS, on every Apple platform: the forward pass is
+# matrix multiplication from end to end. Elsewhere candle's own kernels.
+[target.'cfg(target_vendor = "apple")'.dependencies]
+candle-core = { version = "0.9", default-features = false, features = ["accelerate"] }
+candle-nn = { version = "0.9", default-features = false, features = ["accelerate"] }
+
 [profile.release]
 codegen-units = 1
 lto = "fat"
